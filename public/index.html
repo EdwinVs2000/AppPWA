@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DOGS</title>
+    <!-- Carga el núcleo de Firebase JS SDK -->
+    <script src="/__/firebase/7.15.0/firebase-app.js"></script>
+    <!-- Agrega el manejo de bases de datos. -->
+    <script src="/__/firebase/7.15.0/firebase-firestore.js"></script>
+    <!-- Configura la app usando la información del sitio de Firebase. -->
+    <script src="/__/firebase/init.js"></script>
+
+    <script type="module" src="cmp/mi-footer.js"></script>
+    <link rel="stylesheet" href="css/estilos.css">
+
+  </head>
+  <body>
+    <form action="javascript:guarda()">
+      <header>
+         
+              
+        <h1>Registro Mascotas</h1>
+        <button id="agregar" type="button" onclick="alta();">Agregar...</button>
+        <button type="submit">Guardar</button>
+        <button id="eliminar" type="button" onclick="elimina();">Eliminar</button>
+        
+        
+    </header>
+   <p><input id="nombre" type="text" placeholder="Tu Nombre" required ></p>
+    <p><input id="mascota" type="text" placeholder="Nombre de la Mascota" required ></p>
+    <p><input id="raza" type="text" placeholder="Raza" required ></p>
+    <p><input id="edad" type="text" placeholder="Edad" required ></p>
+  
+  </select>
+  <ul id="lista" >
+      <li><progress max="100">Cargando…</progress></li>
+
+  </ul>
+    
+  <mi-footer></mi-footer>
+  </form>
+  <script>
+ 
+    let id = "";
+    const firestore = firebase.firestore();
+    muestraLista();
+    alta();
+
+    function muestraLista() {
+      
+        firestore.collection("REGISTRO").orderBy("NOM_NOMBRE").onSnapshot
+        firestore.collection("REGISTRO").orderBy("NOM_MASCOTA").onSnapshot
+            firestore.collection("REGISTRO").orderBy("RAZA").onSnapshot
+            firestore.collection("REGISTRO").orderBy("EDAD").onSnapshot(
+         
+            documentos => {
+                let inner = "";
+                documentos.forEach(doc =>
+                    inner += /* html */
+                    `<li>
+          <button type=button onclick="muestra('${cod(doc.id)}')">
+            ${cod(doc.data().NOM_NOMBRE)} 
+          </button>
+          <button type=button onclick="muestra('${cod(doc.id)}')">
+            ${cod(doc.data().NOM_MASCOTA)} 
+          </button>
+          <button type=button onclick="muestra('${cod(doc.id)}')">
+            ${cod(doc.data().RAZA)} 
+          </button>
+          <button type=button onclick="muestra('${cod(doc.id)}')">
+            ${cod(doc.data().EDAD)} 
+          </button>
+        
+          </button>
+          
+        </li>`);
+                lista.innerHTML = inner;
+            },
+            e => {
+                procesaError(e);
+                muestraLista();
+            }
+        );
+    }
+
+    function alta() {
+        agregar.disabled = true;
+        eliminar.disabled = true; 
+        id = ""; 
+        nombre.value = ""; 
+        mascota.value="";
+        raza.value="";
+        edad.value="";
+       
+    }
+    
+    async function muestra(idSel) {
+        try {
+            agregar.disabled = false; 
+            eliminar.disabled = false; 
+        
+            let doc = await firestore.collection("REGISTRO").doc(idSel).get();
+            if (doc.exists) {
+                id = doc.id;
+                let data = doc.data();
+                nombre.value = data.NOM_NOMBRE || "";
+                mascota.value = data.NOM_MASCOTA || "";
+                raza.value= data.RAZA || "";
+                edad.value= data.EDAD || "";
+              
+
+            } else {
+                alert(" Mascota No Registrada.");
+                alta();
+            }
+        } catch (e) {
+            procesaError(e);
+        }
+    }
+    async function guarda() {
+        try {
+            const modelo = {
+                NOM_NOMBRE: nombre.value.trim(),
+                NOM_MASCOTA: mascota.value.trim(),
+                RAZA : raza.value.trim(),
+                EDAD : edad.value.trim()
+              
+            };
+            if (id) {
+            
+                await firestore.collection("REGISTRO").doc(id).set(modelo);
+            } else {
+            
+                await firestore.collection("REGISTRO").add(modelo);
+            }
+            alta();
+        } catch (e) {
+            procesaError(e);
+        }
+    }
+    async function elimina() {
+        try {
+         
+            await firestore.collection("REGISTRO").doc(id).delete();
+            alta();
+        } catch (e) {
+            procesaError(e);
+        }
+    }
+
+    function procesaError(e) {
+        console.log(e);
+        alert(e.message);
+    }
+  
+    function cod(valor) {
+      return (valor || "").toString()
+          .replace(/[<>"']/g,
+              /** @param {string} letra */
+              letra => {
+                  switch (letra) {
+                      case "<":
+                          return "&lt;";
+                      case ">":
+                          return "&gt;";
+                      case '"':
+                          return "&quot;";
+                      case "'":
+                          return "&#039;";
+                      default:
+                          return letra;
+                  }
+              });
+  }
+</script>
+
+</body>
+
+</html>
